@@ -45,10 +45,11 @@ class MainActivity : AppCompatActivity() {
     private val REQUESTED_PERMISSION = arrayOf<String>(Manifest.permission.RECORD_AUDIO)
 
     private fun checkSelfPermission(): Boolean {
-        return !(ContextCompat.checkSelfPermission(
-            this,
-            REQUESTED_PERMISSION[0]
-        ) == PackageManager.PERMISSION_GRANTED)
+       if (ContextCompat.checkSelfPermission(this,REQUESTED_PERMISSION[0]) != PackageManager.PERMISSION_GRANTED){
+           ActivityCompat.requestPermissions(this,REQUESTED_PERMISSION,PERMISSION_REQ_ID)
+           return false
+       }
+        return true
     }
 
     fun showMessage(message: String?) {
@@ -75,11 +76,10 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        if (!checkSelfPermission()) {
-            ActivityCompat.requestPermissions(this, REQUESTED_PERMISSION, PERMISSION_REQ_ID)
+        if (checkSelfPermission()) {
+            setUpVoiceSDKEngine()
         }
 
-        setUpVoiceSDKEngine()
     }
 
     override fun onDestroy() {
