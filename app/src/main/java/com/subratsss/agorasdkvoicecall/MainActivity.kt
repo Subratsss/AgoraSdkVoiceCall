@@ -36,6 +36,7 @@ class MainActivity : AppCompatActivity() {
 
     // Track the status of your connection
     private var isJoined = false
+    private var isMuted = false
 
     // Agora engine instance
     private var agoraEngine: RtcEngine? = null
@@ -109,10 +110,22 @@ class MainActivity : AppCompatActivity() {
     fun joinLeaveChannel(view: View) {
         if (isJoined) {
             agoraEngine?.leaveChannel()
-            binding.joinLeaveButton.text = "Join"
+            binding.joinLeaveButton.text = getString(R.string.join)
+
         } else {
             joinChannel()
-            binding.joinLeaveButton.text = "Leave"
+            binding.joinLeaveButton.text = getString(R.string.leave)
+        }
+    }
+
+    fun onAudioMuteClicked(view: View){
+        isMuted = !isMuted
+        //stops/resumes sending the local audio stream
+        agoraEngine?.muteLocalAudioStream(isMuted)
+        if (isMuted){
+            binding.muteButton.text = getString(R.string.unmute)
+        }else{
+            binding.muteButton.text = getString(R.string.mute)
         }
     }
 
@@ -121,28 +134,35 @@ class MainActivity : AppCompatActivity() {
         // Listen for the remote user joining the channel.
 
         override fun onUserJoined(uid: Int, elapsed: Int) {
-            runOnUiThread { binding.infoText.text = "Remote user joined: $uid" }
+            runOnUiThread { binding.infoText.text = "Remote user joined: $uid"
+            binding.muteButton.visibility = View.VISIBLE
+            }
         }
 
         override fun onJoinChannelSuccess(channel: String?, uid: Int, elapsed: Int) {
             // Successfully joined a channel
             isJoined = true
             showMessage("Joined Channel $channel")
-            runOnUiThread { binding.infoText.text = "Waiting for a remote user to join" }
+            runOnUiThread { binding.infoText.text = getString(R.string.waiting_instruction) }
         }
 
         override fun onUserOffline(uid: Int, reason: Int) {
             // Listen for remote users leaving the channel
             showMessage("Remote user offline $uid $reason")
+            runOnUiThread {
+                binding.muteButton.visibility = View.GONE
+            }
+
             if (isJoined) {
-                runOnUiThread { binding.infoText.text = "Waiting for a remote user to join" }
+                runOnUiThread { binding.infoText.text = getString(R.string.waiting_instruction) }
             }
         }
 
         override fun onLeaveChannel(stats: RtcStats?) {
             // Listen for the local user leaving the channel
             runOnUiThread {
-                binding.infoText.text = "Press the button to join a channel"
+                binding.infoText.text = getString(R.string.join_instruction)
+                binding.muteButton.visibility = View.GONE
             }
             isJoined = false
         }

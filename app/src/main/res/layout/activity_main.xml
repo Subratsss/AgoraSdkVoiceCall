@@ -19,17 +19,31 @@
             android:layout_marginTop="10dp"
             android:layout_marginBottom="10dp"
             android:layout_alignParentTop="true"
-            android:text="Press the button to join a channel" />
+            android:text="@string/join_instruction" />
 
         <Button
             android:id="@+id/joinLeaveButton"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/infoText"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
             android:onClick="joinLeaveChannel"
-            android:text="Join" />
+            android:text="@string/join" />
+
+        <Button
+            android:id="@+id/muteButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/infoText"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:onClick="onAudioMuteClicked"
+            android:layout_alignParentEnd="true"
+            android:text="@string/mute"
+            android:visibility="gone"/>
+
+
 
     </RelativeLayout>
 </ScrollView>

@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">AgoraSdkVoiceCall</string>
+    <string name="mute">Mute</string>
+    <string name="join">Join</string>
+    <string name="join_instruction">Press the button to join a channel</string>
+    <string name="waiting_instruction">Waiting for a remote user to join</string>
+    <string name="leave">Leave</string>
+    <string name="unmute">Unmute</string>
 </resources>
