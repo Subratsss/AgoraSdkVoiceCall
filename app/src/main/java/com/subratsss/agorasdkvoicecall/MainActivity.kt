@@ -2,7 +2,11 @@ package com.subratsss.agorasdkvoicecall
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.graphics.PorterDuff
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextUtils
+import android.text.TextWatcher
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -14,7 +18,6 @@ import io.agora.rtc2.Constants
 import io.agora.rtc2.IRtcEngineEventHandler
 import io.agora.rtc2.RtcEngine
 import io.agora.rtc2.RtcEngineConfig
-import java.lang.Exception
 
 
 class MainActivity : AppCompatActivity() {
@@ -24,12 +27,11 @@ class MainActivity : AppCompatActivity() {
     // Fill the App ID of your project generated on Agora Console.
     private val appId = "bdbd981e811747f8869d362bef6b4294"
 
-    // Fill the channel name.
-    private val channelName = "AgoraSdkVoice"
+    private var channelName = "AgoraVoice"
 
     // Fill the temp token generated on Agora Console.
     private val token =
-        "007eJxTYJj+j9fr6t/EfP/gG2tWu+x9/HZCr0gD7/Pg97OmZHomXXVSYEhKSUqxtDBMtTA0NDcxT7OwMLNMMTYzSkpNM0syMbI0Uf2VldIQyMjQdSmJmZEBAkF8XgbH9PyixOCU7LD8zORUBgYANB8kwQ=="
+        "007eJxTYGDknLLipvdBpUs+G6/q55ipzHDP/vLbqlRa93T+gXXr7nYoMCSlJKVYWhimWhgampuYp1lYmFmmGJsZJaWmmSWZGFmaTI3KS2kIZGTYtVGDgREKQXwuBsf0/KLEsPzM5FQGBgAOOCGj"
 
     // An integer that identifies the local user.
     private val uid = 0
@@ -79,6 +81,7 @@ class MainActivity : AppCompatActivity() {
         if (checkSelfPermission()) {
             setUpVoiceSDKEngine()
         }
+        binding.tvChannelName.text = "Channel Name: $channelName"
 
     }
 
@@ -107,14 +110,25 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    fun onEndCallClicked(view: View){
+        finish()
+    }
+
+
     fun joinLeaveChannel(view: View) {
         if (isJoined) {
             agoraEngine?.leaveChannel()
             binding.joinLeaveButton.text = getString(R.string.join)
+            binding.muteButton.visibility = View.GONE
+            binding.endButton.visibility = View.GONE
 
         } else {
             joinChannel()
             binding.joinLeaveButton.text = getString(R.string.leave)
+            binding.muteButton.visibility = View.VISIBLE
+            binding.endButton.visibility = View.VISIBLE
+
+
         }
     }
 
@@ -123,10 +137,15 @@ class MainActivity : AppCompatActivity() {
         //stops/resumes sending the local audio stream
         agoraEngine?.muteLocalAudioStream(isMuted)
         if (isMuted){
-            binding.muteButton.text = getString(R.string.unmute)
+            binding.muteButton.setSelected(true)
+            binding.muteButton.setColorFilter(resources.getColor(R.color.colorPrimary), PorterDuff.Mode.MULTIPLY)
+
         }else{
-            binding.muteButton.text = getString(R.string.mute)
-        }
+
+            binding.muteButton.setSelected(false)
+            binding.muteButton.clearColorFilter()
+
+                 }
     }
 
 
@@ -136,6 +155,7 @@ class MainActivity : AppCompatActivity() {
         override fun onUserJoined(uid: Int, elapsed: Int) {
             runOnUiThread { binding.infoText.text = "Remote user joined: $uid"
             binding.muteButton.visibility = View.VISIBLE
+                binding.endButton.visibility = View.VISIBLE
             }
         }
 
@@ -151,6 +171,7 @@ class MainActivity : AppCompatActivity() {
             showMessage("Remote user offline $uid $reason")
             runOnUiThread {
                 binding.muteButton.visibility = View.GONE
+                binding.endButton.visibility = View.GONE
             }
 
             if (isJoined) {
@@ -163,6 +184,7 @@ class MainActivity : AppCompatActivity() {
             runOnUiThread {
                 binding.infoText.text = getString(R.string.join_instruction)
                 binding.muteButton.visibility = View.GONE
+                binding.endButton.visibility = View.GONE
             }
             isJoined = false
         }

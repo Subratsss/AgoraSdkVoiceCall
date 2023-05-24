@@ -1,9 +1,13 @@
 <resources>
     <string name="app_name">AgoraSdkVoiceCall</string>
     <string name="mute">Mute</string>
-    <string name="join">Join</string>
+    <string name="join">Join \n Channel</string>
     <string name="join_instruction">Press the button to join a channel</string>
     <string name="waiting_instruction">Waiting for a remote user to join</string>
-    <string name="leave">Leave</string>
+    <string name="leave">Leave \n Channel</string>
     <string name="unmute">Unmute</string>
+    <string name="msg_welcome_message">Welcome to Agora Voice Call</string>
+    <string name="legal_channel_name_characters">abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!#$%&amp;()+,-:;&lt;=.>?@[]^_`{|}~</string>
+    <string name="label_channel_name_hint">Channel name</string>
+
 </resources>
