@@ -14,6 +14,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.subratsss.agorasdkvoicecall.agoraTokenGenerator.RtcTokenBuilder2
 import com.subratsss.agorasdkvoicecall.databinding.ActivityMainBinding
 import io.agora.rtc2.ChannelMediaOptions
 import io.agora.rtc2.Constants
@@ -27,16 +28,12 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
 
-    // Fill the App ID of your project generated on Agora Console.
+    //Agora Console info
     private val appId = "bdbd981e811747f8869d362bef6b4294"
-
-    private var channelName = "AgoraVoice"
-
-    // Fill the temp token generated on Agora Console.
-    private val token =
-        "007eJxTYJD/ajml5rO255OjLs8q5y1sDdv5o+WspeUtN9P7KhU7WTQVGJJSklIsLQxTLQwNzU3M0ywszCxTjM2MklLTzJJMjCxNco82pDQEMjJcfL6YgREKQXwuBsf0/KLEsPzM5FQGBgCBLSND"
-
-    // An integer that identifies the local user.
+    private val appCertificate = "d5e8d3ec4e2345d79f41a124df1f9d66"
+    private val expirationTimeInSeconds = 3600
+    private val channelName = "AgoraVoice"
+    private var token: String? = null
     var uid = 0
 
     // Track the status of your connection
@@ -58,6 +55,20 @@ class MainActivity : AppCompatActivity() {
             }
 
         }
+
+    private fun tokenGenerator() {
+        val tokenBuilder = RtcTokenBuilder2()
+        val timeStamp = (System.currentTimeMillis() / 1000 + expirationTimeInSeconds).toInt()
+        token = tokenBuilder.buildTokenWithUid(
+            appId,
+            appCertificate,
+            channelName,
+            uid,
+            RtcTokenBuilder2.Role.ROLE_PUBLISHER,
+            timeStamp,
+            timeStamp
+        )
+    }
 
     private fun checkSelfPermission() {
         when {
@@ -103,6 +114,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        tokenGenerator()
 
         checkSelfPermission()
 
