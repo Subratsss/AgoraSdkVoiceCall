@@ -7,8 +7,10 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextUtils
 import android.text.TextWatcher
+import android.util.Log
 import android.view.View
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -18,6 +20,7 @@ import io.agora.rtc2.Constants
 import io.agora.rtc2.IRtcEngineEventHandler
 import io.agora.rtc2.RtcEngine
 import io.agora.rtc2.RtcEngineConfig
+import io.agora.rtc2.audio.IAudioSpectrumObserver
 
 
 class MainActivity : AppCompatActivity() {
@@ -31,10 +34,10 @@ class MainActivity : AppCompatActivity() {
 
     // Fill the temp token generated on Agora Console.
     private val token =
-        "007eJxTYGDknLLipvdBpUs+G6/q55ipzHDP/vLbqlRa93T+gXXr7nYoMCSlJKVYWhimWhgampuYp1lYmFmmGJsZJaWmmSWZGFmaTI3KS2kIZGTYtVGDgREKQXwuBsf0/KLEsPzM5FQGBgAOOCGj"
+        "007eJxTYJD/ajml5rO255OjLs8q5y1sDdv5o+WspeUtN9P7KhU7WTQVGJJSklIsLQxTLQwNzU3M0ywszCxTjM2MklLTzJJMjCxNco82pDQEMjJcfL6YgREKQXwuBsf0/KLEsPzM5FQGBgCBLSND"
 
     // An integer that identifies the local user.
-    private val uid = 0
+    var uid = 0
 
     // Track the status of your connection
     private var isJoined = false
@@ -43,15 +46,37 @@ class MainActivity : AppCompatActivity() {
     // Agora engine instance
     private var agoraEngine: RtcEngine? = null
 
-    private val PERMISSION_REQ_ID = 22
     private val REQUESTED_PERMISSION = arrayOf<String>(Manifest.permission.RECORD_AUDIO)
 
-    private fun checkSelfPermission(): Boolean {
-       if (ContextCompat.checkSelfPermission(this,REQUESTED_PERMISSION[0]) != PackageManager.PERMISSION_GRANTED){
-           ActivityCompat.requestPermissions(this,REQUESTED_PERMISSION,PERMISSION_REQ_ID)
-           return false
-       }
-        return true
+
+    private val requestPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
+            if (isGranted) {
+                setUpVoiceSDKEngine()
+            } else {
+                showMessage("Permission required for voice call")
+            }
+
+        }
+
+    private fun checkSelfPermission() {
+        when {
+            ContextCompat.checkSelfPermission(
+                this,
+                REQUESTED_PERMISSION[0]
+            ) == PackageManager.PERMISSION_GRANTED -> {
+
+                setUpVoiceSDKEngine()
+            }
+
+            shouldShowRequestPermissionRationale(REQUESTED_PERMISSION[0]) -> {
+                showMessage("Permission required for voice call")
+            }
+
+            else -> {
+                requestPermissionLauncher.launch(REQUESTED_PERMISSION[0])
+            }
+        }
     }
 
     fun showMessage(message: String?) {
@@ -67,6 +92,7 @@ class MainActivity : AppCompatActivity() {
             config.mAppId = appId
             config.mEventHandler = mRtcEventHandler
             agoraEngine = RtcEngine.create(config)
+            agoraEngine?.enableAudioVolumeIndication(500, 3, true)
         } catch (e: Exception) {
             showMessage(e.toString())
         }
@@ -78,9 +104,8 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        if (checkSelfPermission()) {
-            setUpVoiceSDKEngine()
-        }
+        checkSelfPermission()
+
         binding.tvChannelName.text = "Channel Name: $channelName"
 
     }
@@ -110,7 +135,7 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    fun onEndCallClicked(view: View){
+    fun onEndCallClicked(view: View) {
         finish()
     }
 
@@ -124,6 +149,7 @@ class MainActivity : AppCompatActivity() {
 
         } else {
             joinChannel()
+
             binding.joinLeaveButton.text = getString(R.string.leave)
             binding.muteButton.visibility = View.VISIBLE
             binding.endButton.visibility = View.VISIBLE
@@ -132,35 +158,40 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun onAudioMuteClicked(view: View){
+    fun onAudioMuteClicked(view: View) {
         isMuted = !isMuted
         //stops/resumes sending the local audio stream
         agoraEngine?.muteLocalAudioStream(isMuted)
-        if (isMuted){
+        if (isMuted) {
             binding.muteButton.setSelected(true)
-            binding.muteButton.setColorFilter(resources.getColor(R.color.colorPrimary), PorterDuff.Mode.MULTIPLY)
+            binding.muteButton.setColorFilter(
+                resources.getColor(R.color.colorPrimary),
+                PorterDuff.Mode.MULTIPLY
+            )
 
-        }else{
+        } else {
 
             binding.muteButton.setSelected(false)
             binding.muteButton.clearColorFilter()
 
-                 }
+        }
     }
-
 
     private val mRtcEventHandler: IRtcEngineEventHandler = object : IRtcEngineEventHandler() {
         // Listen for the remote user joining the channel.
 
         override fun onUserJoined(uid: Int, elapsed: Int) {
-            runOnUiThread { binding.infoText.text = "Remote user joined: $uid"
-            binding.muteButton.visibility = View.VISIBLE
+            runOnUiThread {
+                binding.infoText.text = "Remote user joined: $uid"
+                binding.muteButton.visibility = View.VISIBLE
                 binding.endButton.visibility = View.VISIBLE
             }
         }
 
         override fun onJoinChannelSuccess(channel: String?, uid: Int, elapsed: Int) {
             // Successfully joined a channel
+            Log.v("Check ", "current uid " + uid)
+            this@MainActivity.uid = uid
             isJoined = true
             showMessage("Joined Channel $channel")
             runOnUiThread { binding.infoText.text = getString(R.string.waiting_instruction) }
@@ -188,5 +219,25 @@ class MainActivity : AppCompatActivity() {
             }
             isJoined = false
         }
+
+        override fun onAudioVolumeIndication(
+            speakers: Array<out AudioVolumeInfo>?,
+            totalVolume: Int
+        ) {
+            super.onAudioVolumeIndication(speakers, totalVolume)
+            for (speaker in speakers!!) {
+
+                if (speaker.volume > 0 && speaker.uid == 0 || speaker.uid == uid) {
+
+                    Log.v("Check", "U Speaking")
+                } else {
+                    Log.v("Check", "you are Not Speaking")
+                }
+            }
+
+
+        }
+
+
     }
 }
