@@ -1,6 +1,7 @@
 package com.subratsss.agorasdkvoicecall
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.graphics.PorterDuff
 import android.os.Bundle
@@ -233,18 +234,27 @@ class MainActivity : AppCompatActivity() {
             isJoined = false
         }
 
+        @SuppressLint("SetTextI18n")
         override fun onAudioVolumeIndication(
             speakers: Array<out AudioVolumeInfo>?,
             totalVolume: Int
         ) {
             super.onAudioVolumeIndication(speakers, totalVolume)
             for (speaker in speakers!!) {
-
-                if (speaker.volume > 0 && speaker.uid == 0 || speaker.uid == uid) {
-
-                    Log.v("Check", "U Speaking")
+                //Local User
+                if (speaker.uid == 0 || speaker.uid == uid) {
+                    if (speaker.volume > 0) {
+                        runOnUiThread { binding.tvVoiceStatus.text = getString(R.string.speaking) }
+                    } else {
+                        runOnUiThread {
+                            binding.tvVoiceStatus.text = getString(R.string.not_speaking)
+                        }
+                    }
+                }
+                if (isMuted) {
+                    runOnUiThread { binding.tvMicStatus.text = getString(R.string.mic_off)+": " }
                 } else {
-                    Log.v("Check", "you are Not Speaking")
+                    runOnUiThread { binding.tvMicStatus.text = getString(R.string.mic_on)+": " }
                 }
             }
 

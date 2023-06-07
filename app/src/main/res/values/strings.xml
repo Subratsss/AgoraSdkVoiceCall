@@ -9,5 +9,9 @@
     <string name="msg_welcome_message">Welcome to Agora Voice Call</string>
     <string name="legal_channel_name_characters">abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!#$%&amp;()+,-:;&lt;=.>?@[]^_`{|}~</string>
     <string name="label_channel_name_hint">Channel name</string>
+    <string name="speaking">Speaking...</string>
+    <string name="not_speaking">Not speaking...</string>
+    <string name="mic_off">Mic OFF</string>
+    <string name="mic_on">Mic ON</string>
 
 </resources>
